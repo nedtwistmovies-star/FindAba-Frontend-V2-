@@ -9,10 +9,26 @@ interface HospitalityStore {
   events: EventListing[];
   tourismSpots: TourismSpot[];
   isLoading: boolean;
-  
+
   // Actions
-  fetchHospitalityData: async () => {
-    if (!isSupabaseConfigured) return;
+  fetchHospitalityData: () => Promise<void>;
+  fetchUserBookings: (userId: string) => Promise<void>;
+  setHotels: (hotels: Business[]) => void;
+  setRooms: (rooms: Product[]) => void;
+  addBooking: (booking: Booking) => Promise<void>;
+  updateBookingStatus: (id: string, status: Booking['status']) => Promise<void>;
+  setEvents: (events: EventListing[]) => void;
+  setTourismSpots: (spots: TourismSpot[]) => void;
+}
+
+export const useHospitalityStore = create<HospitalityStore>((set, get) => ({
+  hotels: [],
+  rooms: [],
+  bookings: [],
+  events: [],
+  tourismSpots: [],
+  isLoading: false,
+
   fetchHospitalityData: async () => {
     if (!isSupabaseConfigured) return;
     set({ isLoading: true });
@@ -33,32 +49,6 @@ interface HospitalityStore {
     }
   },
 
-export const useHospitalityStore = create<HospitalityStore>((set, get) => ({
-  hotels: [],
-  rooms: [],
-  bookings: [],
-  events: [],
-  tourismSpots: [],
-  isLoading: false,
-
-  fetchHospitalityData: async () => {
-    if (!isSupabaseConfigured) return;
-    set({ isLoading: true });
-    try {
-      const [hotelsRes, roomsRes] = await Promise.all([
-        supabase.from('businesses').select('*').or('category.eq.hospitality,category.ilike.%hotel%,category.ilike.%suite%'),
-        supabase.from('products').select('*').or('category.eq.Room,category.eq.Ticket')
-      ]);
-
-      set({
-        hotels: hotelsRes.data || [],
-        rooms: roomsRes.data || [],
-      });
-    } finally {
-      set({ isLoading: false });
-    }
-  },
-
   fetchUserBookings: async (userId: string) => {
     if (!isSupabaseConfigured) return;
     const { data } = await supabase
@@ -66,7 +56,7 @@ export const useHospitalityStore = create<HospitalityStore>((set, get) => ({
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
-    
+
     if (data) {
       set({ bookings: data as Booking[] });
     }
@@ -74,7 +64,7 @@ export const useHospitalityStore = create<HospitalityStore>((set, get) => ({
 
   setHotels: (hotels) => set({ hotels }),
   setRooms: (rooms) => set({ rooms }),
-  
+
   addBooking: async (booking) => {
     const { data, error } = await supabase.from('bookings').insert([booking]).select().single();
     if (!error && data) {
