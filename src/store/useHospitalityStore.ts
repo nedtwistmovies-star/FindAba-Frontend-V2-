@@ -13,16 +13,20 @@ interface HospitalityStore {
   // Actions
   fetchHospitalityData: async () => {
     if (!isSupabaseConfigured) return;
+  fetchHospitalityData: async () => {
+    if (!isSupabaseConfigured) return;
     set({ isLoading: true });
     try {
-      const [hotelsRes, roomsRes] = await Promise.all([
+      const [hotelsRes, roomsRes, eventsRes] = await Promise.all([
         supabase.from('businesses').select('*').or('category.eq.hospitality,category.ilike.%hotel%,category.ilike.%suite%'),
-        supabase.from('products').select('*').or('category.eq.Room,category.eq.Ticket')
+        supabase.from('products').select('*').or('category.eq.Room,category.eq.Ticket'),
+        supabase.from('events').select('*').order('date', { ascending: true })
       ]);
 
       set({
         hotels: hotelsRes.data || [],
         rooms: roomsRes.data || [],
+        events: eventsRes.data || [],
       });
     } finally {
       set({ isLoading: false });
