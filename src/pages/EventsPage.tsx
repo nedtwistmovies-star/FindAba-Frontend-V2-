@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Calendar, 
@@ -20,7 +20,12 @@ import { EventCard } from '../components/hospitality/EventCard';
 import { CityImage } from '../components/common/CityImage';
 
 export const EventsPage: React.FC = () => {
-  const { events } = useHospitalityStore();
+  const { events, fetchHospitalityData } = useHospitalityStore();
+
+  useEffect(() => {
+    fetchHospitalityData();
+  }, []);
+
   const [activeCategory, setActiveCategory] = useState<'All' | 'concert' | 'conference' | 'party' | 'festival'>('All');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -201,4 +206,4 @@ export const EventsPage: React.FC = () => {
       </section>
     </div>
   );
-};
+  }
