@@ -11,15 +11,23 @@ interface HospitalityStore {
   isLoading: boolean;
   
   // Actions
-  fetchHospitalityData: () => Promise<void>;
-  fetchUserBookings: (userId: string) => Promise<void>;
-  setHotels: (hotels: Business[]) => void;
-  setRooms: (rooms: Product[]) => void;
-  addBooking: (booking: Booking) => Promise<void>;
-  updateBookingStatus: (id: string, status: Booking['status']) => Promise<void>;
-  setEvents: (events: EventListing[]) => void;
-  setTourismSpots: (spots: TourismSpot[]) => void;
-}
+  fetchHospitalityData: async () => {
+    if (!isSupabaseConfigured) return;
+    set({ isLoading: true });
+    try {
+      const [hotelsRes, roomsRes] = await Promise.all([
+        supabase.from('businesses').select('*').or('category.eq.hospitality,category.ilike.%hotel%,category.ilike.%suite%'),
+        supabase.from('products').select('*').or('category.eq.Room,category.eq.Ticket')
+      ]);
+
+      set({
+        hotels: hotelsRes.data || [],
+        rooms: roomsRes.data || [],
+      });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
 
 export const useHospitalityStore = create<HospitalityStore>((set, get) => ({
   hotels: [],
