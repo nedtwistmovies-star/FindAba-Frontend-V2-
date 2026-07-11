@@ -1,0 +1,6 @@
+{
+  "name": "FindAba OS V2",
+  "description": "The city operating system for Aba — Discover businesses, community, marketplace, transport, logistics, wallet, AI assistant, and a complete social networking ecosystem for Enyimba City.",
+  "requestFramePermissions": ["geolocation", "camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

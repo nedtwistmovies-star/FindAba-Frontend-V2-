@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-green: #0B7A3B;
+  --color-secondary-green: #169C4A;
+  --color-primary-gold: #D4AF37;
+  --color-light-gold: #F4D35E;
+  --color-aba-bg: #F8FAF7;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background-color: var(--color-aba-bg);
+  font-family: var(--font-sans);
+}
