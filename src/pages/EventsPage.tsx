@@ -206,4 +206,4 @@ export const EventsPage: React.FC = () => {
       </section>
     </div>
   );
-  }
+};
