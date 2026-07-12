@@ -511,3 +511,80 @@ export async function createPostInSupabase(post: Omit<CommunityPost, 'id' | 'lik
     created_at: new Date().toISOString(),
   });
 }
+// ============================================================
+// ADD THESE FUNCTIONS TO src/services/supabaseService.ts
+// Do not replace the whole file — paste these in alongside
+// the existing exports (e.g. near createBusinessInSupabase).
+// ============================================================
+
+export interface EventTicketInput {
+  event_id: string;
+  buyer_name: string;
+  buyer_email: string;
+  buyer_phone: string;
+  quantity: number;
+  unit_price: number;
+  total_amount: number;
+  status: 'pending' | 'paid' | 'cancelled';
+}
+
+// Create a pending ticket record before payment
+export async function createEventTicket(ticket: EventTicketInput) {
+  if (!isSupabaseConfigured) throw new Error('Supabase not configured');
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { data, error } = await supabase
+    .from('event_tickets')
+    .insert([{
+      ...ticket,
+      user_id: user?.id || null,
+    }])
+    .select()
+    .single();
+
+  return { data, error };
+}
+
+// Optimistically mark a ticket as paid after the Paystack popup succeeds.
+// The /api/paystack-webhook on the backend is the source of truth and will
+// also update this record server-side once Paystack's webhook fires —
+// this call just gives the user immediate feedback without waiting on that.
+export async function markTicketPaid(ticketId: string, paymentReference: string) {
+  if (!isSupabaseConfigured) return { data: null, error: new Error('Supabase not configured') };
+
+  const { data, error } = await supabase
+    .from('event_tickets')
+    .update({
+      status: 'paid',
+      payment_reference: paymentReference,
+    })
+    .eq('id', ticketId)
+    .select()
+    .single();
+
+  if (error) {
+    console.warn('[EventTickets] Failed to mark ticket paid client-side (webhook will still confirm):', error.message);
+  }
+
+  return { data, error };
+}
+
+// Fetch a user's own tickets (for a "My Tickets" view, if needed later)
+export async function fetchUserEventTickets(userId: string) {
+  if (!isSupabaseConfigured) return [];
+  try {
+    const { data, error } = await supabase
+      .from('event_tickets')
+      .select('*, events(name, date, venue, image_url)')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error || !data) return [];
+    return data;
+  } catch (err) {
+    console.warn('Supabase fetch event tickets error:', err);
+    return [];
+  }
+  }
+        
