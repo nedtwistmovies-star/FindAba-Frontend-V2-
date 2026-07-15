@@ -482,7 +482,7 @@ export const HomePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-[#0B7A3B] text-white font-bold flex items-center justify-center text-sm">
-                      {post.author_name[0]}
+                      {post.author_name?.[0]?.toUpperCase() || '?'}
                     </div>
                     <div>
                       <h4 className="font-bold text-slate-900 dark:text-white text-sm">{post.author_name}</h4>
